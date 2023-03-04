@@ -5,7 +5,7 @@
 #       Created on: 2021-06-12      #
 # --------------------------------- #
 
-
+import json
 import math
 import os
 import pathlib
@@ -31,7 +31,7 @@ from training.model_trainer import ModelTrainer
 from dataloaders.dataset_factory import DatasetFactory
 
 
-model_trainer_config = {
+model_trainer_config_test = {
 	"number_of_classes":3,
 	"max_rounds":10,
 	"tenacity":10,
@@ -97,7 +97,7 @@ model_trainer_config = {
 	}
 }
 
-singleclass_model_config = {
+singleclass_model_config_test = {
 	"module_type":"singleclass_model",
 	"number_of_classes":3,
 	"prediction_logits_key":"output_logits",
@@ -177,7 +177,7 @@ singleclass_model_config = {
 	}
 }
 
-singleclass_model_config2 = {
+singleclass_model_config_test2 = {
 	"module_type":"singleclass_model",
 	"number_of_classes":3,
 	"prediction_logits_key":"output_logits",
@@ -250,7 +250,7 @@ singleclass_model_config2 = {
 	}
 }
 
-singleclass_model_config3 = {
+singleclass_model_config_test3 = {
 	"module_type":"singleclass_model",
 	"number_of_classes":3,
 	"prediction_logits_key":"output_logits",
@@ -323,14 +323,9 @@ singleclass_model_config3 = {
 	}
 }
 
-def build_model(mode):
-	
-	if mode == 1:
-		model = ModuleFactory.BUILD_MODULE(**singleclass_model_config)
-	elif mode == 2:
-		model = ModuleFactory.BUILD_MODULE(**singleclass_model_config2)
-	elif mode == 3:
-		model = ModuleFactory.BUILD_MODULE(**singleclass_model_config3)
+def build_model(model_config):
+
+	model = ModuleFactory.BUILD_MODULE(**model_config)
 
 	model.to_device()
 
@@ -400,7 +395,7 @@ def training_loop(model, model_trainer):
 	model_trainer(model)
 
 
-def model_trainer_building_test():
+def model_trainer_building_test(model_trainer_config):
 
 	model_trainer_builder = ModelTrainerBuilder()
 	model_trainer_builder.configure(**model_trainer_config)
@@ -412,12 +407,31 @@ def model_trainer_building_test():
 def main():
 
 	working_folder="../experiments/testing/"
+	config_folder = "../configs/testing"
+
+	model_config_fname = os.path.join(config_folder, "model.json")
+
+	with open(model_config_fname, 'r') as f:
+		model_config = json.load(f)
+
+	model_trainer_config_fname = os.path.join(config_folder, "training.json")
+
+	with open(model_trainer_config_fname, 'r') as f:
+		model_trainer_config = json.load(f)
+
 
 	pathlib.Path(working_folder).mkdir(parents=True, exist_ok=True)
 
 	config_folder = os.path.join(working_folder, "configs/")
 
-	os.mkdir(config_folder)
+	pathlib.Path(config_folder).mkdir(parents=True, exist_ok=True)	
+
+	for config, fname in zip([model_config, model_trainer_config],["model.json", "training.json"]):
+
+		output_filename = os.path.join(config_folder, fname)
+		json_object = json.dumps(config, indent=4)
+		with open(output_filename, 'w') as f:
+			f.write(json_object)
 
 	model_trainer_config["checkpoint_folder"] = working_folder
 	model_trainer_config["display_config"]["log_file"] = os.path.join(working_folder, "training_log.txt")
@@ -429,7 +443,7 @@ def main():
 
 	torch.manual_seed(RANDOM_SEED)
 
-	model = build_model(3)
+	model = build_model(model_config)
 
 	#inference_evaluator = build_IE()	
 
@@ -439,7 +453,7 @@ def main():
 
 	#check_avg_time(model, inference_evaluator, iterations)
 
-	model_trainer = model_trainer_building_test()
+	model_trainer = model_trainer_building_test(model_trainer_config)
 
 	training_loop(model, model_trainer)
 
