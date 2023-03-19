@@ -45,6 +45,6 @@ class InferenceEvaluator:
 
 			inference_metrics = self.metric_tracker.get_metrics()
 
-			inference_metrics[self.time_key] = time.time() - start_time
+			inference_metrics[self.time_key] = (time.time() - start_time)/60.0
 		
 			return inference_metrics

@@ -5,21 +5,24 @@
 #       Created on: 2023-01-15      #
 # --------------------------------- #
 
+
 from torch.utils.data import Dataset
 import torch
 
-class SentencePairDataset(Dataset):
+
+
+class W2VSentencePairDataset(Dataset):
 
 	def __init__(self, *args, **kwargs):
 
-		super(SentencePairDataset, self).__init__()
+		super(W2VSentencePairDataset, self).__init__()
 
 		indexes_key = kwargs.pop("indexes_key")
 		labels_key = kwargs.pop("labels_key")
-		word_indexes_key = kwargs.pop("word_indexes_key") #this is misnamed, it just needs to be a per word identifier
+		word_indexes_key = kwargs.pop("word_indexes_key")
 		sentence_lengths_key = kwargs.pop("sentence_lengths_key")
 
-		self.collate_fn = SentencePairDataset._get_coallate_fn(indexes_key, labels_key, word_indexes_key, sentence_lengths_key)
+		self.collate_fn = W2VSentencePairDataset._get_coallate_fn(indexes_key, labels_key, word_indexes_key, sentence_lengths_key)
 
 
 	def set_corpus(self, corpus):

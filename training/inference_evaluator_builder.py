@@ -55,7 +55,8 @@ class InferenceEvaluatorBuilder():
 			sys.exit()
 
 		dataset = DatasetFactory.BUILD_DATASET(**self.dataset_config)
-		self.dataloader_params["collate_fn"] = dataset.collate_fn
+		if dataset.collate_fn is not None:
+			self.dataloader_params["collate_fn"] = dataset.collate_fn
 		dataloader = DataLoader(dataset, **self.dataloader_params)
 
 		metric_tracker = ModelPredictionMetrics(**self.metric_tracker_params)

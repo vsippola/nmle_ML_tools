@@ -34,7 +34,7 @@ class DisplayTrainingResults():
 
 		if self.summary_file is not None:
 			with open(self.summary_file, "a") as f:
-				f.write(f"Epoch\tTrain Loss\tTrain Acc\tVal Loss\tVal Acc\n")
+				f.write(f"Epoch\tCheckpoint\tTrain Loss\tTrain Acc\tVal Loss\tVal Acc\n")
 
 
 	def flush_train_buffer(self):
@@ -95,6 +95,7 @@ class DisplayTrainingResults():
 			with open(self.summary_file, "a") as f:				
 
 				epoch = train_info[self.display_keys["epoch_num"]]
+				checkpoint = train_info[self.display_keys["checkpoint"]]
 
 				train_loss = train_info[self.display_keys["train_loss"]]
 				train_acc = train_info[self.display_keys["train_acc"]]
@@ -102,7 +103,7 @@ class DisplayTrainingResults():
 				val_loss = inference_info[self.display_keys["inference_loss"]]
 				val_acc = inference_info[self.display_keys["inference_acc"]]
 
-				f.write(f"{epoch}\t{train_loss:.4f}\t{train_acc:.4f}\t{val_loss:.4f}\t{val_acc:.4f}\n")
+				f.write(f"{epoch}\t{checkpoint}\t{train_loss:.4f}\t{train_acc:.4f}\t{val_loss:.4f}\t{val_acc:.4f}\n")
 
 
 	def print_message(self, message):

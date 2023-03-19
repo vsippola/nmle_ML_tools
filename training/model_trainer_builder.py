@@ -60,11 +60,12 @@ class ModelTrainerBuilder():
 			sys.exit()
 
 		inference_keys = {"loss":"inference_loss", "acc":"inference_acc", "time":"inference_time"}
-		training_keys = {"loss":"train_loss", "acc":"train_acc", "time":"train_time", "total_batches":"total_batches", "batch_idx":"batch_idx","epoch_num":"epoch_num"}
+		training_keys = {"loss":"train_loss", "checkpoint":"checkpoint", "acc":"train_acc", "time":"train_time", "total_batches":"total_batches", "batch_idx":"batch_idx","epoch_num":"epoch_num"}
 
 		#build data loader
 		dataset = DatasetFactory.BUILD_DATASET(**self.dataset_config)
-		self.dataloader_params["collate_fn"] = dataset.collate_fn
+		if dataset.collate_fn is not None:
+			self.dataloader_params["collate_fn"] = dataset.collate_fn
 		dataloader = DataLoader(dataset, **self.dataloader_params)
 
 		#build metric tracker
@@ -82,6 +83,7 @@ class ModelTrainerBuilder():
 		#build the displaying object
 		self.display_config["display_keys"] = {
 			"epoch_num":training_keys["epoch_num"],
+			"checkpoint":training_keys["checkpoint"],
 			"batch_idx":training_keys["batch_idx"],
 			"total_batches":training_keys["total_batches"],
 			"train_loss":training_keys["loss"],

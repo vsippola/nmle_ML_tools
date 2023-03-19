@@ -36,7 +36,9 @@ class Word2VecBlock(CustomNNModule):
 
 		self.index_key = kwargs.pop("index_key")
 		self.output_key = kwargs.pop("output_key")
-		self.freeze = kwargs.pop("freeze", True)		
+		#override default
+		self._freeze = kwargs.pop("freeze", True)	
+		kwargs["freeze"] = self._freeze
 
 		super(Word2VecBlock, self).__init__(*args, **kwargs)
 
@@ -49,7 +51,7 @@ class Word2VecBlock(CustomNNModule):
 
 		with torch.no_grad():	
 
-			self.embedding = torch.nn.Embedding.from_pretrained(torch.tensor(vecs), freeze=self.freeze, sparse=True)	
+			self.embedding = torch.nn.Embedding.from_pretrained(torch.tensor(vecs), freeze=self._freeze, sparse=True)	
 
 
 

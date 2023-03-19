@@ -1,21 +1,25 @@
 '''
 parses the semeval sentence similarity dataset
 
-python3.10 fasttext_pickle.py -input_file ""../../../raw_data/fasttext_crawl-300d-2M/crawl-300d-2M.vec" -output_folder ../../word2vec_pickles/fasttext_crawl-300d-2M/
+python3.10 fasttext_pickle.py -input_file "../../../raw_data/fasttext_crawl-300d-2M/crawl-300d-2M.vec" -output_folder "../../word2vec_pickles/fasttext_crawl-300d-2M/"
+
 '''
 
 import argparse
-import numpy as np
 import os
+import pathlib
 import pickle
 
+import numpy as np
 
-def parse_word2sense_textfile(input_path):
 
-	PRINT_STEP = 250
 
-	vocab = {}
-	vecs = []
+def parse_fasttext_textfile(input_path):
+
+	PRINT_STEP = 2500
+
+	vocab = {"__OOV":0}
+	vecs = [0]
 
 	with open(input_path) as f:
 
@@ -28,13 +32,18 @@ def parse_word2sense_textfile(input_path):
 			word = line_tokens[0]
 			vec = np.array(line_tokens[1:]).astype(np.float32)
 
-			vocab[word] = line_num
+			vocab[word] = len(vecs)
 			vecs.append(vec)
 
 
 			if (line_num+1) % PRINT_STEP == 0:
-				print(f'\rlines processed: {line_num+1}', end='\r')
+				print(f'\rlines processed: {line_num+1}', end='\r')				
 
+	vecs[0] = np.zeros(vecs[1].shape, dtype=np.float32)
+
+	vecs = np.stack(vecs)
+
+	print()
 	print()
 
 	return vocab, vecs
@@ -46,7 +55,7 @@ def save_files(vocab, vecs, output_folder):
 	if not (os.path.isdir(output_folder)):
 		print()
 		print(f'folder {output_folder} does not exist creating it')
-		os.makedirs(output_folder)
+		pathlib.Path(output_folder).mkdir(parents=True, exist_ok=True)
 
 	vocab_path = os.path.join(output_folder, 'vocab.pkl')
 	vecs_path = os.path.join(output_folder, 'vecs.pkl')
@@ -58,8 +67,6 @@ def save_files(vocab, vecs, output_folder):
 		pickle.dump(vecs, f)
 
 
-
-
 def process_word2sense_textfile(input_path, output_folder):
 
 	#check input file
@@ -68,11 +75,9 @@ def process_word2sense_textfile(input_path, output_folder):
 		print(f'file {input_path} does not exist')
 		return False
 
-	vocab, vecs = parse_word2sense_textfile(input_path)
+	vocab, vecs = parse_fasttext_textfile(input_path)
 
 	save_files(vocab, vecs, output_folder)
-
-
 
 
 def main():

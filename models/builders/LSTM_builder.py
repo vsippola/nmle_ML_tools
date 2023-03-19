@@ -5,17 +5,12 @@
 #       Created on: 2022-01-31      #
 # --------------------------------- #
 
-"""
-This class builds a word2vec NN object.10
-
-It loads vectors from a given pkl file.
-
-"""
+import sys
 
 from .context import definition
 from definition.LSTM import LSTMBlock
 
-import sys
+
 
 class LSTMBuilder():
 	
@@ -24,11 +19,6 @@ class LSTMBuilder():
 		self.configured = False
 
 
-	"""
-	kwargs
-	vector_pkl_file - file where the matrix of vectors is stored
-	word2vec_config - parameter dictionary provided for the word2vec NN object from configuration
-	"""
 	def configure(self, *args, **kwargs):
 
 

@@ -12,6 +12,7 @@ from .context import definition
 
 from models.builders.FFN_builder import FFNBuilder
 from models.builders.granular_builder import GranularModelBuilder
+from models.builders.HF_roberta_adapter_builder import HFRobertaAdapterModelBuilder
 from models.builders.LSTM_builder import LSTMBuilder
 from models.builders.optimizer_builder import OptimizerBuilder
 from models.builders.sentence_aggregation_builder import SentenceAggregationBuilder
@@ -28,14 +29,15 @@ from models.definition.split_sentence_pairs import SplitSentencePairs
 class ModuleFactory():
 
 	BUILDER_CLASS_TYPE = {
-		"word2vec":Word2VecBuilder,
 		"ffn":FFNBuilder,
+		"granular_model":GranularModelBuilder,
+		"hf_roberta_adapter":HFRobertaAdapterModelBuilder,
+		"lstm":LSTMBuilder,
+		"optimizer":OptimizerBuilder,
 		"sentence_aggregation":SentenceAggregationBuilder,
 		"sentence_pair_combination":SentencePairCombinationBuilder,
-		"granular_model":GranularModelBuilder,
 		"singleclass_model":SingleClassClassificationBuilder,
-		"optimizer":OptimizerBuilder,
-		"lstm":LSTMBuilder
+		"word2vec":Word2VecBuilder
 		}
 
 	MODULE_CLASS_TYPE = {

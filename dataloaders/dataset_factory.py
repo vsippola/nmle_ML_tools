@@ -7,21 +7,21 @@
 
 import sys
 
-from .dataset_builders import SentencePairDatasetBuilder
+from .sentence_list_builder import SentenceListDatasetBuilder
+
 
 
 class DatasetFactory():
 
 	BUILDER_CLASS_TYPE = {
-		"snli_dataset":SentencePairDatasetBuilder
-		
+		"sentence_list": SentenceListDatasetBuilder
 	}
 
-	MODULE_CLASS_TYPE = {
+	DATASET_CLASS_TYPE = {
 	
 	}
 
-	model_builders = {module_type:None for module_type in BUILDER_CLASS_TYPE}
+	dataset_builders = {dataset_type:None for dataset_type in BUILDER_CLASS_TYPE}
 
 
 	@classmethod
@@ -31,22 +31,22 @@ class DatasetFactory():
 
 		if dataset_type in cls.BUILDER_CLASS_TYPE:
 
-			if cls.model_builders[dataset_type] is None:
-				cls.model_builders[dataset_type] = cls.BUILDER_CLASS_TYPE[dataset_type]()
+			if cls.dataset_builders[dataset_type] is None:
+				cls.dataset_builders[dataset_type] = cls.BUILDER_CLASS_TYPE[dataset_type]()
 
-			builder = cls.model_builders[dataset_type]
+			builder = cls.dataset_builders[dataset_type]
 			builder.configure(**kwargs)
 
 			return builder.build()
 
-		elif dataset_type in cls.MODULE_CLASS_TYPE:
+		elif dataset_type in cls.DATASET_CLASS_TYPE:
 
-			return cls.MODULE_CLASS_TYPE[dataset_type](**kwargs)
+			return cls.DATASET_CLASS_TYPE[dataset_type](**kwargs)
 
 		else:
 
 			print()
-			print("dataset_type type: {module_type} is not defined")
+			print(f"dataset_type type: {dataset_type} is not defined")
 			sys.exit()
 
 

@@ -17,7 +17,7 @@ class sts_parsed2corpus_const:
 	CORPUS_FILES = ['snli_1.0_dev.tsv', 'snli_1.0_test.tsv', 'snli_1.0_train.tsv']
 	W2V_VOCAB_FILE = 'vocab.pkl'
 	W2V_VECS_FILE = 'vecs.pkl'
-	LABEL_TEXT_2_NUM = {'neutral':0, 'entailment':1, 'contradiction':2}
+	LABEL_TEXT_2_NUM = {'entailment':0, 'neutral':1, 'contradiction':2}
 
 
 def get_corpus_vocab(input_folder):

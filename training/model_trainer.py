@@ -23,10 +23,13 @@ class ModelTrainer:
 			"current_round":0,
 			"tenacity":kwargs.pop("tenacity", 7),
 			"current_fail_count":0,
-			"minimum_lr":kwargs.pop("minimum_lr", 1e-5),			
+			"minimum_lr":kwargs.pop("minimum_lr", 1e-7),			
 			"best_inference_acc":-float("inf"),
 			"best_checkpoint_filename":None,
-			"save_all":kwargs.pop("save_all", False)
+			"save_all":kwargs.pop("save_all", False),
+			"checkpoint":0,
+			"check_after_iterations":kwargs.pop("check_after_iterations", None),
+			"current_iterations":0
 		}		
 
 		self.checkpoint_folder = kwargs.pop("checkpoint_folder")
@@ -74,13 +77,23 @@ class ModelTrainer:
 		self.training_info["current_epoch"] += 1
 
 
-	def _evaluate_inference(self, inferecene_info, model):
+	def _evaluate_inference(self, model, training_display_info):
+
+		current_checkpoint = self.training_info["checkpoint"]
+		training_display_info["checkpoint"] = current_checkpoint
+
+		inferecene_info = self.inference_evaluator(model)
+
+		self.training_displayer.print_inference_evalutation(inferecene_info)
+
+		self.training_displayer.print_summary(training_display_info, inferecene_info)
 
 		new_acc = inferecene_info[self.inference_acc_key]
 		best_acc = self.training_info["best_inference_acc"]
+		
+		checkpoint_filename = os.path.join(self.checkpoint_folder, f"Checkpoint_{current_checkpoint}.tar")
 
-		current_epoch = self.training_info["current_epoch"] + 1
-		checkpoint_filename = os.path.join(self.checkpoint_folder, f"Checkpoint_{current_epoch}.tar")
+		self.training_info["improved"] = False
 
 		if new_acc >= best_acc:
 			self.training_info["best_inference_acc"] = new_acc
@@ -99,6 +112,12 @@ class ModelTrainer:
 				"training_info":self.training_info
 			}
 			torch.save(checkpoint, checkpoint_filename)
+
+		self.training_info["checkpoint"] += 1
+
+		self._evaluate_training(model)
+
+		model.train()
 
 
 	def _evaluate_training(self, model):
@@ -135,6 +154,7 @@ class ModelTrainer:
 		#otherwise we have reached the fail state for this round of training
 		#increase the round count
 		self.training_info["current_round"] += 1
+		self.training_info["current_fail_count"] = 0
 
 		#check if we have lost all the rounds
 		curr_round = self.training_info["current_round"]
@@ -174,14 +194,6 @@ class ModelTrainer:
 		self.training_info["continue_training"] = True
 
 
-	def _rename_best_checkpoint(self):
-
-		current_file_name = self.training_info["best_checkpoint_filename"]
-		fname, ext = os.path.splitext(current_file_name)
-		new_file_name =  fname + "_best" + ext		
-		os.rename(current_file_name, new_file_name)
-
-
 	def __call__(self, model):		
 
 		self.optimizer.register_model(model)
@@ -192,12 +204,11 @@ class ModelTrainer:
 		training_display_info = {self.training_display_keys["total_batches"]:len(self.dataloader)}
 
 		self.training_info["continue_training"] = True
+		self.training_info["batch_size"] = self.dataloader.batch_size
 
 		while self.training_info["continue_training"]:
 
-			training_display_info[self.training_display_keys["epoch_num"]] = self.training_info["current_epoch"] + 1
-
-			self.training_info["improved"] = False
+			training_display_info[self.training_display_keys["epoch_num"]] = self.training_info["current_epoch"] + 1			
 
 			self.metric_tracker.reset_metrics()
 
@@ -209,7 +220,7 @@ class ModelTrainer:
 
 				training_display_info[self.training_display_keys["batch_idx"]] = batch_idx + 1
 	
-				self.optimizer.zero_grad()
+				self.optimizer.zero_grad(set_to_none=True)
 
 				state_object = model(batch_data)
 				self.metric_tracker.update_metrics(state_object)
@@ -225,28 +236,31 @@ class ModelTrainer:
 					train_metrics = self.metric_tracker.get_metrics()
 					
 					# Record end time for the batch
-					training_display_info[self.training_display_keys["time"]] = (time.time() - epoch_start)/60.0				
+					training_display_info[self.training_display_keys["time"]] = (time.time() - epoch_start)/60.0		
+
+					training_display_info = training_display_info | train_metrics
 						
-					self.training_displayer.update_train_buffer(train_metrics | training_display_info)
+					self.training_displayer.update_train_buffer(training_display_info)
 
-			self.training_displayer.flush_train_buffer()
+					if self.training_info["check_after_iterations"] is not None:
 
-			inferecene_info = self.inference_evaluator(model)
+						self.training_info["current_iterations"] += self.training_info["batch_size"]
 
-			self.training_displayer.print_inference_evalutation(inferecene_info)
+						if self.training_info["current_iterations"] >= self.training_info["check_after_iterations"]:
 
-			self.training_displayer.print_summary(train_metrics | training_display_info, inferecene_info)
+							self.training_info["current_iterations"]  = 0
+							self._evaluate_inference(model, training_display_info)															
 
-			self._evaluate_inference(inferecene_info, model)			
+							if not self.training_info["continue_training"]:
+								break
+
+
+			self.training_displayer.flush_train_buffer()				
+
+			if not self.training_info["continue_training"]:
+				break
+
+			self.training_info["current_iterations"]  = 0
+			self._evaluate_inference(model, training_display_info)				
 
 			self.training_info["current_epoch"] += 1
-
-			self._evaluate_training(model)
-		
-		self._rename_best_checkpoint()
-
-
-
-
-
-
