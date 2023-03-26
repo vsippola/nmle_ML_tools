@@ -60,10 +60,67 @@ class SentenceTransformFunctions():
 
 		
 
-		
+	def sentence_transform_gather(*args, **kwargs): 
+
+		sentence_index = kwargs.pop("sentence_index")
+
+		combine_before_transform = kwargs.pop("combine_before_transform")
+
+		if isinstance(sentence_index, list):
+
+			if combine_before_transform:
+
+				combine_seperator = kwargs.pop("combine_seperator")
+
+				def sentence_transform_fn(example):
+
+					sentences = [example[s_i] for s_i in sentence_index]
+					sentence = combine_seperator.join(sentences)
+
+					return sentence
+
+			else:
+
+				def sentence_transform_fn(example):
+
+					return  [example[s_i] for s_i in sentence_index]
+
+		else:
+
+			def sentence_transform_fn(example):
+
+				return  example[sentence_index] 
+
+		return sentence_transform_fn
+
+
+	def sentence_transform_bert(*args, **kwargs):
+
+		sentence_index = kwargs.pop("sentence_index")
+
+		add_sep = kwargs.pop("add_sep", True)
+		if add_sep:
+			sep_token = kwargs.pop("sep_token", "</s>")
+			
+
+		if isinstance(sentence_index, list):
+
+			if add_sep:
+
+				def sentence_transform_fn(example):
+
+					sentences = [example[s_i] for s_i in sentence_index]
+					sentence = f" {sep_token} ".join(sentences)
+
+					return sentence
+
+				return sentence_transform_fn
+
 		
 
 	SENTENCE_TRANSFORM_FN_DICT = {
+		"bert":sentence_transform_bert,
+		"gather":sentence_transform_gather,
 		"w2v":sentence_transform_w2v
 	}
 

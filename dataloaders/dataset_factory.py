@@ -7,6 +7,7 @@
 
 import sys
 
+from .ensemble_builder import EnsembleDatasetBuilder
 from .sentence_list_builder import SentenceListDatasetBuilder
 
 
@@ -14,7 +15,8 @@ from .sentence_list_builder import SentenceListDatasetBuilder
 class DatasetFactory():
 
 	BUILDER_CLASS_TYPE = {
-		"sentence_list": SentenceListDatasetBuilder
+		"ensemble":EnsembleDatasetBuilder,
+		"sentence_list": SentenceListDatasetBuilder		
 	}
 
 	DATASET_CLASS_TYPE = {

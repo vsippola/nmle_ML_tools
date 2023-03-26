@@ -23,8 +23,9 @@ class SingleClassClassification(CustomNNModule):
 		self.prediction_logits_key = kwargs.pop("prediction_logits_key")	
 		self.true_labels_key = kwargs.pop("true_labels_key")	
 
-		self.loss_values_key = kwargs.pop("loss_values_key")
+		self.loss_values_key = kwargs.pop("loss_values_key", None)
 		self.class_predictions_key = kwargs.pop("class_predictions_key")
+		self.class_percentages_key = kwargs.pop("class_percentages_key", None)
 		
 		#call to custom NN module
 		super(SingleClassClassification, self).__init__(*args, **kwargs)
@@ -32,6 +33,7 @@ class SingleClassClassification(CustomNNModule):
 		self.model = None
 		self.loss_fn = None
 		self.predict_class = None
+		self.output_dimension = None
 
 	
 	def set_model(self, model):
@@ -54,14 +56,21 @@ class SingleClassClassification(CustomNNModule):
 		state_object = self.model(state_object)
 
 		prediction_logits = state_object[self.prediction_logits_key]
-		
-		true_labels = state_object[self.true_labels_key]
-		true_labels = true_labels.to(prediction_logits.device)
-
-		state_object[self.loss_values_key] = self.loss_fn(prediction_logits, true_labels)
 
 		with torch.no_grad():
+
 			state_object[self.class_predictions_key] = self.predict_class(self, prediction_logits)
+
+			if self.class_percentages_key is not None:
+
+				state_object[self.class_percentages_key] = torch.nn.functional.softmax(prediction_logits, dim=1)
+
+		if (self.loss_values_key is not None) and (self.true_labels_key in state_object):			
+			
+			true_labels = state_object[self.true_labels_key]
+			true_labels = true_labels.to(prediction_logits.device)
+
+			state_object[self.loss_values_key] = self.loss_fn(prediction_logits, true_labels)		
 
 		return state_object
 

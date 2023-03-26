@@ -49,6 +49,9 @@ class ModelPredictionMetrics():
 
 		with torch.no_grad():
 
+			if len(self.average_batch_loss) == 0:
+				return 0
+
 			return sum(self.average_batch_loss)/len(self.average_batch_loss)
 
 

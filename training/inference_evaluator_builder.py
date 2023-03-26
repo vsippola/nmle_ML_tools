@@ -19,6 +19,7 @@ from torch.utils.data import DataLoader
 from .context import dataloaders
 from dataloaders.dataset_factory import DatasetFactory
 
+from .detailed_inference_evaluator import DetailedInferenceEvaluator
 from .inference_evaluator import InferenceEvaluator
 from .model_output_metrics import ModelPredictionMetrics
 
@@ -26,6 +27,11 @@ from .model_output_metrics import ModelPredictionMetrics
 
 
 class InferenceEvaluatorBuilder():
+
+	inference_evaluator_classes = {
+		"basic":InferenceEvaluator,
+		"detailed":DetailedInferenceEvaluator
+	}
 	
 	def __init__(self, *args, **kwargs):
 		
@@ -35,12 +41,14 @@ class InferenceEvaluatorBuilder():
 	def configure(self, *args, **kwargs):
 
 		#update configuration
+		IE_type = kwargs.pop("type", "basic")
 		dataset_config = kwargs.pop("dataset_config")
 		dataloader_params = kwargs.pop("dataloader_params")
 		metric_tracker_params = kwargs.pop("metric_tracker_params")
 
 		self.configured = True
 		
+		self.IE_class = InferenceEvaluatorBuilder.inference_evaluator_classes[IE_type]
 		self.dataset_config = dataset_config
 		self.dataloader_params = dataloader_params			
 		self.metric_tracker_params = metric_tracker_params	
@@ -60,8 +68,8 @@ class InferenceEvaluatorBuilder():
 		dataloader = DataLoader(dataset, **self.dataloader_params)
 
 		metric_tracker = ModelPredictionMetrics(**self.metric_tracker_params)
-
-		inference_evaluator = InferenceEvaluator(**self.inference_evaluator_params)		
+		
+		inference_evaluator = self.IE_class(**self.inference_evaluator_params)		
 		inference_evaluator.set_dataloader(dataloader)
 		inference_evaluator.set_metric_tracker(metric_tracker)
 

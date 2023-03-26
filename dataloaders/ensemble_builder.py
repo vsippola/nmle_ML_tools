@@ -11,11 +11,10 @@ import pickle
 import sys
 
 from .collate_fns import CollateFunctions
+from .ensemble import EnsembleDataset
 from .label_transform_fns import LabelTransformFunctions
-from .sentence_list import SentenceListDataset
-from .sentence_transform_fns import SentenceTransformFunctions
 
-class SentenceListDatasetBuilder():
+class EnsembleDatasetBuilder():
 
 	
 	def __init__(self, *args, **kwargs):
@@ -29,9 +28,10 @@ class SentenceListDatasetBuilder():
 		corpus_file = kwargs.pop("corpus_file", None)
 		corpus = kwargs.pop("corpus", None)
 
+		dataset_configs = kwargs.pop("dataset_configs")
+
 		example_number_index = kwargs.pop("example_number_index", None)
 		label_transform_params = kwargs.pop("label_transform_params", None)
-		sentence_transform_params = kwargs.pop("sentence_transform_params")
 		collate_fn_params = kwargs.pop("collate_fn_params", None)
 
 		if (corpus_file is None) and (corpus is None):
@@ -48,14 +48,16 @@ class SentenceListDatasetBuilder():
 
 		self.corpus_file = corpus_file
 		self.corpus = corpus
+		self.dataset_configs = dataset_configs
 		self.example_number_index = example_number_index
 		self.label_transform_params = label_transform_params
-		self.sentence_transform_params = sentence_transform_params
 		self.collate_fn_params = collate_fn_params
 		
 
 
 	def build(self):
+
+		from .dataset_factory import DatasetFactory
 
 		if not self.configured:
 			print()
@@ -75,7 +77,6 @@ class SentenceListDatasetBuilder():
 
 				for example_line in f:
 					corpus.append(example_line)
-
 
 		#get the index tranformation function
 		if self.example_number_index is not None:
@@ -99,12 +100,6 @@ class SentenceListDatasetBuilder():
 			label_transform_fn = None
 
 
-		#get the label transformation function
-		sentence_transform_fn = SentenceTransformFunctions.get_fn(**self.sentence_transform_params)		
-
-
-
-
 		#define the tranform function
 		def transform_fn(example):
 
@@ -112,25 +107,33 @@ class SentenceListDatasetBuilder():
 			example = example.strip("\n").split("\t")
 
 			example_number = example_number_tranform_fn(example) if example_number_tranform_fn is not None else -1
-			label = label_transform_fn(example) if label_transform_fn is not None else -1
-			sentences = sentence_transform_fn(example)
+			label = label_transform_fn(example) if label_transform_fn is not None else -1			
 
-			return [example_number, label, sentences]
+			return [example_number, label]
 
 
-		if self.collate_fn_params is not None:
+		datasets = {}
+		collate_fns = {}
 
-			collate_fn = CollateFunctions.get_fn(**self.collate_fn_params)
+		for dataset_config_key, dataset_config  in self.dataset_configs.items():
 
-		else:
+			dataset_config["corpus"] = corpus
+			dataset = DatasetFactory.BUILD_DATASET(**dataset_config)
+			datasets[dataset_config_key] = dataset
+			collate_fns[dataset_config_key] = dataset.collate_fn
 
-			collate_fn = None
 
-		dataset = SentenceListDataset()
+		self.collate_fn_params["collate_fns"] = collate_fns
 
-		dataset.set_corpus(corpus)
-		dataset.set_transform_fn(transform_fn)
-		dataset.set_collate_fn(collate_fn)
+		collate_fn = CollateFunctions.get_fn(**self.collate_fn_params)
 
-		return dataset
+		ensemble_dataset = EnsembleDataset()
+
+		ensemble_dataset.set_corpus(corpus)
+		ensemble_dataset.set_collate_fn(collate_fn)
+		ensemble_dataset.set_datasets(datasets)
+		ensemble_dataset.set_transform_fn(transform_fn)
+	
+
+		return ensemble_dataset
 					

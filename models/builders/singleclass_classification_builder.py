@@ -52,9 +52,7 @@ class SingleClassClassificationBuilder():
 			print(f'Builder not configured')
 			sys.exit()
 
-		singleclass_model = SingleClassClassification(**self.SCC_params)
-
-		submodule = ModuleFactory.BUILD_MODULE(**self.module_config)
+		singleclass_model = SingleClassClassification(**self.SCC_params)		
 
 		loss_fn_type = self.loss_fn_param.pop("loss_fn_type")
 		loss_fn = SingleClassClassificationBuilder.LOSS_FNS[loss_fn_type](**self.loss_fn_param)
@@ -62,7 +60,10 @@ class SingleClassClassificationBuilder():
 		pred_fn_type = self.prediction_fn_param.pop("prediction_fn_type")
 		pred_fn = SingleClassClassificationBuilder.PREDICTION_FNS[pred_fn_type]
 
+		submodule = ModuleFactory.BUILD_MODULE(**self.module_config)
+
 		singleclass_model.set_model(submodule)
+		singleclass_model.output_dimension = submodule.output_dimension
 		singleclass_model.set_loss_fn(loss_fn)
 		singleclass_model.set_predict_class_fn(pred_fn)
 
