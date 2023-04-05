@@ -8,12 +8,14 @@
 import sys
 
 
-from models.builders.allennlp_predictor_builder import AllenNLPPredictorModelBuilder
+#from models.builders.allennlp_predictor_builder import AllenNLPPredictorModelBuilder
 from models.builders.ensemble_builder import EnsembleBuilder
+from models.builders.ensemble_mlp_builder import EnsembleMLPBuilder
+from models.builders.ensemble_stacked_voting_builder import EnsembleStackedVotingBuilder
 from models.builders.ensemble_values_builder import EnsembleValuesBuilder
 from models.builders.FFN_builder import FFNBuilder
 from models.builders.granular_builder import GranularModelBuilder
-from models.builders.HF_roberta_adapter_builder import HFRobertaAdapterModelBuilder
+from models.builders.HF_builder import HFModelBuilder
 from models.builders.LSTM_builder import LSTMBuilder
 from models.builders.pretrained_builder import PretrainedModelBuilder
 from models.builders.optimizer_builder import OptimizerBuilder
@@ -31,18 +33,20 @@ from models.definition.split_sentence_pairs import SplitSentencePairs
 class ModuleFactory():
 
 	BUILDER_CLASS_TYPE = {
-		"allennlp_predictor":AllenNLPPredictorModelBuilder,
+		#"allennlp_predictor":AllenNLPPredictorModelBuilder,
 		"ensemble":EnsembleBuilder,
+		"ensemble_mlp":EnsembleMLPBuilder,
+		"ensemble_stacked_vote":EnsembleStackedVotingBuilder,
 		"ensemble_values":EnsembleValuesBuilder,
 		"ffn":FFNBuilder,
 		"granular_model":GranularModelBuilder,
-		"hf_roberta_adapter":HFRobertaAdapterModelBuilder,
+		"hf_model":HFModelBuilder,
 		"lstm":LSTMBuilder,
 		"my_pretrained":PretrainedModelBuilder,
 		"optimizer":OptimizerBuilder,
 		"sentence_aggregation":SentenceAggregationBuilder,
 		"sentence_pair_combination":SentencePairCombinationBuilder,
-		"singleclass_model":SingleClassClassificationBuilder,
+		"singleclass_model":SingleClassClassificationBuilder,		
 		"word2vec":Word2VecBuilder
 		}
 

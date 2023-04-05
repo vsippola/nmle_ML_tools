@@ -7,14 +7,47 @@
 
 
 """
+trained ense
 
-python3.10 detailed_inference.py -output_file "../experiments/snli_ensemble/snli_testing_details.txt" -inference_config_file "../configs/snli_basic_ensemble/detailed_testing.json" -model_config_file "../configs/snli_basic_ensemble/model.json" -RNG_SEED 1234
+python3.10 detailed_inference.py -output_file "../experiments/snli/ens_train_m/snli_testing_details.txt" -inference_config_file "../configs/snli_ensemble_train_m/detailed_testing.json" -model_config_file "../configs/snli_ensemble_train_m/model_attack.json" -RNG_SEED 1234
+
+python3.10 detailed_inference.py -output_file "../experiments/snli/ens_train_m_noise/snli_testing_details.txt" -inference_config_file "../configs/snli_ensemble_train_m_noise/detailed_testing.json" -model_config_file "../configs/snli_ensemble_train_m_noise/model_attack.json" -RNG_SEED 1234
+
+python3.10 detailed_inference.py -output_file "../experiments/snli/ens_train_m_noise_det/snli_testing_details.txt" -inference_config_file "../configs/snli_ensemble_train_m_noise/detailed_testing.json" -model_config_file "../configs/snli_ensemble_train_m_noise/model_attack_det.json" -RNG_SEED 1234
+
+python3.10 detailed_inference.py -output_file "../experiments/snli/ens_train_m_model/snli_testing_details.txt" -inference_config_file "../configs/snli_ensemble_train_m_model/detailed_testing.json" -model_config_file "../configs/snli_ensemble_train_m_model/model_attack.json" -RNG_SEED 1234
+
+python3.10 detailed_inference.py -output_file "../experiments/snli/ens_train_mlp/snli_testing_details.txt" -inference_config_file "../configs/snli_ensemble_train_mlp/detailed_testing.json" -model_config_file "../configs/snli_ensemble_train_mlp/model_attack.json" -RNG_SEED 1234
+
+
+nondet ensembles
+
+python3.10 detailed_inference.py -output_file "../experiments/snli_ensemble_trans_nd/snli_testing_details.txt" -inference_config_file "../configs/snli_ensemble_trans_nd/detailed_testing.json" -model_config_file "../configs/snli_ensemble_trans_nd/model.json" -RNG_SEED 1234
+
+python3.10 detailed_inference.py -output_file "../experiments/snli_ensemble_trans_noise/snli_testing_details.txt" -inference_config_file "../configs/snli_ensemble_trans_noise/detailed_testing.json" -model_config_file "../configs/snli_ensemble_trans_noise/model.json" -RNG_SEED 1234
+
+
+deterministc ensmbles
+
+python3.10 detailed_inference.py -output_file "../experiments/snli_ensemble_trans_vote/snli_testing_details.txt" -inference_config_file "../configs/snli_ensemble_trans_vote/detailed_testing.json" -model_config_file "../configs/snli_ensemble_trans_vote/model.json" -RNG_SEED 1234
+
+python3.10 detailed_inference.py -output_file "../experiments/snli_ensemble_vote/snli_testing_details.txt" -inference_config_file "../configs/snli_ensemble_vote/detailed_testing.json" -model_config_file "../configs/snli_ensemble_vote/model.json" -RNG_SEED 1234
+
+python3.10 detailed_inference.py -output_file "../experiments/snli_ensemble_trans/snli_testing_details.txt" -inference_config_file "../configs/snli_ensemble_trans/detailed_testing.json" -model_config_file "../configs/snli_ensemble_trans/model.json" -RNG_SEED 1234
+
+python3.10 detailed_inference.py -output_file "../experiments/snli_ensemble/snli_testing_details.txt" -inference_config_file "../configs/snli_ensemble/detailed_testing.json" -model_config_file "../configs/snli_ensemble/model.json" -RNG_SEED 1234
+
+
+single models
 
 python3.10 detailed_inference.py -output_file "../experiments/snli_bilstm/snli_testing_details.txt" -inference_config_file "../configs/snli_bilstm/detailed_testing.json" -model_config_file "../configs/snli_bilstm/model_testing.json" -RNG_SEED 1234
 
-python3.10 detailed_inference.py -output_file "../experiments/snli_elmo/snli_testing_details.txt" -inference_config_file "../configs/snli_elmo/detailed_testing.json" -model_config_file "../configs/snli_elmo/model.json" -RNG_SEED 1234
-
 python3.10 detailed_inference.py -output_file "../experiments/snli_roberta/snli_testing_details.txt" -inference_config_file "../configs/snli_roberta/detailed_testing.json" -model_config_file "../configs/snli_roberta/model.json" -RNG_SEED 1234
+
+python3.10 detailed_inference.py -output_file "../experiments/snli_deberta/snli_testing_details.txt" -inference_config_file "../configs/snli_deberta/detailed_testing.json" -model_config_file "../configs/snli_deberta/model.json" -RNG_SEED 1234
+
+python3.10 detailed_inference.py -output_file "../experiments/snli_bart/snli_testing_details.txt" -inference_config_file "../configs/snli_bart/detailed_testing.json" -model_config_file "../configs/snli_bart/model.json" -RNG_SEED 1234
+
 
 """
 

@@ -21,6 +21,8 @@ from dataloaders.dataset_factory import DatasetFactory
 
 from .detailed_inference_evaluator import DetailedInferenceEvaluator
 from .inference_evaluator import InferenceEvaluator
+from .nd_detailed_inference_evaluator import NDDetailedInferenceEvaluator
+from .nd_inference_evaluator import NDInferenceEvaluator
 from .model_output_metrics import ModelPredictionMetrics
 
 
@@ -30,7 +32,9 @@ class InferenceEvaluatorBuilder():
 
 	inference_evaluator_classes = {
 		"basic":InferenceEvaluator,
-		"detailed":DetailedInferenceEvaluator
+		"detailed":DetailedInferenceEvaluator,
+		"nd_detailed":NDDetailedInferenceEvaluator,
+		"nd_basic":NDInferenceEvaluator		
 	}
 	
 	def __init__(self, *args, **kwargs):

@@ -15,7 +15,25 @@ from definition.singleclass_classification import SingleClassClassification
 
 class SingleClassClassificationBuilder():
 
-	LOSS_FNS = {"cross_entropy":torch.nn.CrossEntropyLoss}
+	def negative_log():
+
+		def loss_fn(predictions, true_labels):
+
+			predictions = torch.stack([p[tl_i] for p, tl_i in zip(predictions, true_labels)])
+
+			predictions = -torch.log(predictions)
+
+			predictions = torch.mean(predictions)
+
+			return predictions
+
+		return loss_fn
+
+
+	LOSS_FNS = {
+		"cross_entropy":torch.nn.CrossEntropyLoss,
+		"neg_log":negative_log
+	}
 
 	PREDICTION_FNS = {"max": SingleClassClassification._max_value_prediction}
 	

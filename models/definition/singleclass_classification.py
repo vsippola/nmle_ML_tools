@@ -51,6 +51,10 @@ class SingleClassClassification(CustomNNModule):
 		self.predict_class = fn
 
 
+	def to_device(self):
+		self.model.to_device()
+
+
 	def forward(self, state_object):
 
 		state_object = self.model(state_object)
@@ -61,16 +65,17 @@ class SingleClassClassification(CustomNNModule):
 
 			state_object[self.class_predictions_key] = self.predict_class(self, prediction_logits)
 
-			if self.class_percentages_key is not None:
+			if (self.class_percentages_key is not None) and (self.class_percentages_key not in state_object):
 
 				state_object[self.class_percentages_key] = torch.nn.functional.softmax(prediction_logits, dim=1)
+				
 
 		if (self.loss_values_key is not None) and (self.true_labels_key in state_object):			
 			
 			true_labels = state_object[self.true_labels_key]
 			true_labels = true_labels.to(prediction_logits.device)
 
-			state_object[self.loss_values_key] = self.loss_fn(prediction_logits, true_labels)		
+			state_object[self.loss_values_key] = self.loss_fn(prediction_logits, true_labels)	
 
 		return state_object
 

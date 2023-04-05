@@ -84,13 +84,48 @@ class CollateFunctions():
 		return collate_fn
 
 
+	def ensemble_values(*args, **kwargs):
+
+		example_numbers_key = kwargs.pop("example_numbers_key", None)
+		labels_key = kwargs.pop("labels_key", None)
+		enemble_batch_key = kwargs.pop("ensemble_batch_key")
+
+		def collate_fn(data):
+
+			with torch.no_grad():
+
+				example_numbers, labels, emsemble_batches = zip(*data)
+
+				labels = torch.tensor(labels)
+
+				ensemble_batch = torch.stack(emsemble_batches)
+
+				state_object = {}
+
+				for key, value in zip([example_numbers_key, labels_key, enemble_batch_key],[example_numbers, labels, ensemble_batch]):
+					if key is not None:
+						state_object[key] = value
+
+				return state_object
+
+		return collate_fn
+
+
 	def roberta_single_sentence(*args, **kwargs):
 
-		from transformers import RobertaTokenizerFast		
+		from transformers import RobertaTokenizer, AutoTokenizer, BartTokenizer
+
+		tokenizer_types = {
+			"auto":AutoTokenizer,
+			"bart":BartTokenizer,
+			"roberta_fast":RobertaTokenizer
+		}
+
+		tokenizer_type = tokenizer_types[kwargs.pop("tokenizer_type")]
 
 		tokenizer_source = kwargs.pop("tokenizer_source")
 
-		tokenizer = RobertaTokenizerFast.from_pretrained(tokenizer_source)		
+		tokenizer = tokenizer_type.from_pretrained(tokenizer_source)		
 
 		example_numbers_key = kwargs.pop("example_numbers_key", None)
 		labels_key = kwargs.pop("labels_key", None)
@@ -158,6 +193,7 @@ class CollateFunctions():
 	COLLATE_FN_DICT = {
 		"allennlp_snli":allennlp_snli,
 		"ensemble":ensemble,
+		"ensemble_values":ensemble_values,
 		"roberta_single_sentence":roberta_single_sentence,
 		"stack_sentences":stack_sentences
 	}

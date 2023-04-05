@@ -1,0 +1,18 @@
+python3.10 pwws_attack.py -attack_config_file "../configs/attacks/bilstm/hard.json"
+python3.10 pwws_attack.py -attack_config_file "../configs/attacks/elmo/nd_hard.json"
+python3.10 pwws_attack.py -attack_config_file "../configs/attacks/elmo/hard.json"
+python3.10 pwws_attack.py -attack_config_file "../configs/attacks/roberta/hard.json"
+
+python3.10 pwws_attack.py -attack_config_file "../configs/attacks/ensemble_ber/hard.json"
+python3.10 pwws_attack.py -attack_config_file "../configs/attacks/ensemble_ber/nd_hard.json"
+
+python3.10 pwws_attack.py -attack_config_file "../configs/attacks/ensemble_nd_ber/hard.json"
+python3.10 pwws_attack.py -attack_config_file "../configs/attacks/ensemble_nd_ber/nd5_hard.json"
+python3.10 pwws_attack.py -attack_config_file "../configs/attacks/ensemble_nd_ber/nd10_hard.json"
+
+
+python3.10 pwws_attack.py -attack_config_file "../configs/attacks/roberta/med.json"
+python3.10 pwws_attack.py -attack_config_file "../configs/attacks/ensemble_ber/nd_med.json"
+
+python3.10 pwws_attack.py -attack_config_file "../configs/attacks/roberta/med.json"
+python3.10 pwws_attack.py -attack_config_file "../configs/attacks/ensemble_ber/nd5_med.json"

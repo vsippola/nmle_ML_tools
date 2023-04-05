@@ -6,6 +6,7 @@
 # --------------------------------- #
 
 import copy
+import json
 from math import exp
 import time
 
@@ -72,14 +73,25 @@ class PWWSAttacker:
 
 		self.probs_key = kwargs.pop("prob_key")
 		self.int2label = kwargs.pop("int2label")
+		self.int2label = {value:key for key, value in self.int2label.items()} #loaded from json which only allows str as keys
+		self.nondet_factor = kwargs.pop("nondet_factor", 1)
+		self.attack_budget = kwargs.pop("attack_budget")
+
+		self.use_safer_syns = kwargs.pop("use_safer_syns", False)
+
+		if self.use_safer_syns:
+			with open("../safer/counterfitted_neighbors.json", 'r') as f:
+				self.safer_synonyms = json.load(f)
+
+		print(self.safer_synonyms)
+
+		exit()
 
 		spacy.prefer_gpu()
 		self.nlp = spacy.load("en_core_web_sm")
 
 		self.attack_examples = {}
 		self.safe_examples = {}
-
-
 
 
 	def _found_attack(self, num, attack_list, attack_pred):
@@ -122,23 +134,38 @@ class PWWSAttacker:
 
 		with torch.no_grad():
 
-			self.dataset_config["corpus"] = corpus
+			epoch_probs = []
 
-			dataset = DatasetFactory.BUILD_DATASET(**self.dataset_config)
-			if dataset.collate_fn is not None:
-				self.dataloader_params["collate_fn"] = dataset.collate_fn
-			dataloader = DataLoader(dataset, **self.dataloader_params)
+			for _ in range(self.nondet_factor):
 
-			probs = []
+				self.dataset_config["corpus"] = corpus
 
-			for batch in dataloader:
+				dataset = DatasetFactory.BUILD_DATASET(**self.dataset_config)
+				if dataset.collate_fn is not None:
+					self.dataloader_params["collate_fn"] = dataset.collate_fn
+				dataloader = DataLoader(dataset, **self.dataloader_params)
 
-				state_object = self.model(batch)
-				batch_probs = state_object[self.probs_key].cpu().numpy()
+				probs = []
 
-				probs.append(batch_probs)
-					
-			probs = np.concatenate(probs)
+				for batch in dataloader:
+
+					state_object = self.model(batch)
+					batch_probs = state_object[self.probs_key].cpu().numpy()
+
+					probs.append(batch_probs)
+						
+				probs = np.concatenate(probs)
+
+				epoch_probs.append(probs)
+
+			if self.nondet_factor == 1:
+
+				probs = epoch_probs[0]
+
+			else:							
+
+				epoch_probs = np.stack(epoch_probs,axis=0)
+				probs = np.mean(epoch_probs, axis=0)
 
 			return probs
 
@@ -224,7 +251,7 @@ class PWWSAttacker:
 
 
 	#gets the synonym set for one word
-	def _get_single_synonyms_set(self, word):
+	def _get_single_synonyms_set_pwws(self, word):
 
 		synsets = wn.synsets(word["w"].text, word["wnet_pos"])
 
@@ -235,6 +262,11 @@ class PWWSAttacker:
 		synonyms = [synonym for synonym in synonyms if self._filter_synonyms(word["w"], synonym)]
 
 		return list(set([syn.text for syn in synonyms]))
+
+
+	#gets the synonym set for one word
+	def _get_single_synonyms_set_safer(self, word):
+		return self.safer_synonyms.get(word["w"].text.lower(), [])
 
 
 	#gets the synonym set for all target words
@@ -265,7 +297,13 @@ class PWWSAttacker:
 
 				else:
 
-					synonyms = self._get_single_synonyms_set(word)
+					if self.use_safer_syns:
+
+						synonyms = self._get_single_synonyms_set_safer(word)
+
+					else:
+
+						synonyms = self._get_single_synonyms_set_pwws(word)
 
 					target_synonyms[(target)] = synonyms
 
@@ -378,9 +416,6 @@ class PWWSAttacker:
 		for num in safe:
 			self._mark_safe(num)
 
-		count = 0
-		display_count = 10
-
 		while len(attack_details) > 0:
 
 			attack_batch = []
@@ -466,9 +501,7 @@ class PWWSAttacker:
 				attack_details.pop(num)
 				self._found_attack(num, attacklist, attack_pred)
 
-			if count % display_count == 0:
-				print(f"\rExamples remaining: {len(attack_details)}-----", end="\r")
-			count += 1
+			print(f"\rExamples remaining: {len(attack_details)}-----", end="\r")
 
 		print(f"\rExamples remaining: {len(attack_details)}-----")
 		print()
@@ -557,7 +590,7 @@ class PWWSAttacker:
 			self.examples[num]["attacks_list"] = attacks_list
 
 			if (count + 1) % display_count == 0:
-				print(f"\rSynonyms found {count +1}/{len(self.examples)}", end="\r")
+				print(f"\r Multi-word attacks created {count +1}/{len(self.examples)}", end="\r")
 
 		print(f"\r Multi-word attacks created {len(self.examples)}/{len(self.examples)}")
 
@@ -589,44 +622,44 @@ class PWWSAttacker:
 				"true_label":true_label,
 			}
 
-		attack_size = 1
+		attack_size = 1		
 
-		count = 0
-		display_count = 10
-
-		while len(attack_details) > 0:	
+		while (len(attack_details) > 0) and (attack_size <= self.attack_budget):	
 
 			attack_batch = []
 			attack_lists = []		
 
-			for num, details in attack_details.items():
+			#we already tried all size 1 attacks
+			if attack_size > 1:
 
-				attack_list = details["full_attack_list"][:attack_size]
-				attack_lists.append(attack_list)
+				for num, details in attack_details.items():
 
-				attack_example = self._generate_adversary(num, attack_list)
+					attack_list = details["full_attack_list"][:attack_size]
+					attack_lists.append(attack_list)
 
-				attack_batch.append(attack_example)
+					attack_example = self._generate_adversary(num, attack_list)
 
-			number_queries += len(attack_batch)
+					attack_batch.append(attack_example)
 
-			prob_list = self._generate_probs(attack_batch)
+				number_queries += len(attack_batch)
 
-			attack_preds = np.argmax(prob_list, axis=1)
+				prob_list = self._generate_probs(attack_batch)
 
-			successful = []
-			
-			for (num, details), pred, attack_list in zip(attack_details.items(), attack_preds, attack_lists):
+				attack_preds = np.argmax(prob_list, axis=1)
 
-				if pred != details["true_label"]:
+				successful = []
+				
+				for (num, details), pred, attack_list in zip(attack_details.items(), attack_preds, attack_lists):
 
-					attack = (num, attack_list, pred)
-					successful.append(attack)
+					if pred != details["true_label"]:
 
-			for num, attack_list, pred in successful:
+						attack = (num, attack_list, pred)
+						successful.append(attack)
 
-				attack_details.pop(num)
-				self._found_attack(num, attack_list, pred)
+				for num, attack_list, pred in successful:
+
+					attack_details.pop(num)
+					self._found_attack(num, attack_list, pred)
 
 			attack_size += 1
 
@@ -643,20 +676,27 @@ class PWWSAttacker:
 				attack_details.pop(num)
 				self._mark_safe(num)	
 
-			if count % display_count == 0:
-				print(f"\rExamples remaining: {len(attack_details)}-----", end="\r")
-			count+=1
+			print(f"\rExamples remaining: {len(attack_details)}-----", end="\r")
 
 		print(f"\rExamples remaining: {len(attack_details)}-----")
 		print()
 
+		#saved by attack budget
+		for num in attack_details:
+			self._mark_safe(num)	
+
 		return number_queries
+
 
 	def _generate_report(self, attack_time, total_queries_pwws, total_queries_mine):
 
-		new_accuracy = len(self.safe_examples)/(len(self.safe_examples) + len(self.attack_examples))
-		avg_queries_pwws = total_queries_pwws/(len(self.safe_examples) + len(self.attack_examples))
-		avg_queries_mine = total_queries_mine/(len(self.safe_examples) + len(self.attack_examples))
+		num_attacks = len(self.attack_examples)
+		num_safe = len(self.safe_examples)
+		num_total = num_attacks + num_safe
+
+		new_accuracy = num_safe/num_total
+		avg_queries_pwws = total_queries_pwws/num_total
+		avg_queries_mine = total_queries_mine/num_total
 
 		safe_report = ""
 
@@ -692,13 +732,13 @@ class PWWSAttacker:
 			total_subrate += sub_rate
 			total_prob += p_prob
 
-		num_attacks = len(self.attack_examples)
 		avearge_subs = total_subs/num_attacks if num_attacks != 0 else 0
 		avearge_subrate = total_subrate/num_attacks if num_attacks != 0 else 0
 		average_time = attack_time/num_attacks if num_attacks != 0 else 0
 		average_prob = total_prob/num_attacks if num_attacks != 0 else 0
-
-		general_report = f"Total Time: {attack_time} Average time: {average_time}\n" + \
+				
+		general_report = f"Number Examples {num_total} Number Attacks {num_attacks} Number Safe {num_safe}\n" + \
+			f"Total Time: {attack_time} Average time: {average_time}\n" + \
 			f"Total Queries {total_queries_mine} Avg Queries {avg_queries_mine}\n" +\
 			f"Total PWWS Queries {total_queries_pwws} Avg PWWS Queries {avg_queries_pwws}\n" +\
 			f"Adverarial Accuracy {new_accuracy}\n" + \
@@ -738,6 +778,8 @@ class PWWSAttacker:
 		total_queries_mine += self._peform_multiword_attacks()
 
 		attack_time =  time.time() - start_time
+		total_queries_mine *= self.nondet_factor
+		total_queries_pwws *= self.nondet_factor
 
 		general_report, safe_report, attack_report  = self._generate_report(attack_time, total_queries_pwws, total_queries_mine)
 

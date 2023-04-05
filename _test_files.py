@@ -150,58 +150,68 @@ def run_no_train_test(inference_config, model):
 	print(output)
 
 
-def test_ensemble(testing_config, model):
-
-	dataset = DatasetFactory.BUILD_DATASET(**testing_config)
-
-	dataloader_params = {
-		"batch_size":32,
-		"shuffle":True,
-		"num_workers":7,
-		"collate_fn":dataset.collate_fn
-	}
-
-	dataloader = DataLoader(dataset, **dataloader_params)
-
-	model.eval()
-
-	with torch.no_grad():
-
-		stime = time.time()
-		for batch in dataloader:
-			model(batch)
-
-		print( (time.time()-stime)/60.0)
 
 
 def main():
 
-	from transformers import RobertaTokenizerFast	
+	model_config = {
+		"module_type":"hf_model",
+		"class":"auto_seq_class",
+		"address":"cross-encoder/nli-deberta-v3-xsmall",
+		"batch_key":"bert_batch",
+		"output_key":"output_logits",
+		"output_dimension":3
+	}
 
-	tokenizer = RobertaTokenizerFast.from_pretrained("roberta-base")	
+	model_config = {
+		"module_type":"hf_model",
+		"class":"roberta_adapter",
+		"address":"roberta-base",
+		"adapter":"AdapterHub/roberta-base-pf-snli",
+		"batch_key":"bert_batch",
+		"output_key":"output_logits",
+		"output_dimension":3
+	}
 
-	print(dir(tokenizer))
-
-	print(tokenizer.sep_token, tokenizer(tokenizer.sep_token))	
-	print(tokenizer.cls_token, tokenizer(tokenizer.cls_token))
+	with torch.no_grad():
 
 
-	love = "I love you."
-	hate = "I hate you."
-	dog = "the dog is large"
+		love = "I love you."
+		hate = "I hate you."
+		dog = "the dog is large"
 
-	sent = " ".join([love, dog])
+		noise_dist = torch.distributions.normal.Normal(torch.tensor([0.0], device="cuda"),torch.tensor([0.1], device="cuda"))
+		noise = noise_dist.sample([32,3])
 
-	tokens = tokenizer(sent)
+		print(noise)
+		print(noise.size())
 
-	print(tokens['input_ids'])
+		values = torch.full((32,3,1), 0.3, device="cuda")
 
-	sent = " </s> ".join([love, dog])
-	sent = f"<s> {sent} </s>"
+		print(values)
+		print(values.size())
 
-	tokens = tokenizer(sent)
+		noisy_values = noise + values
 
-	print(tokens['input_ids'])
+		torch.nn.ReLU(noisy_values)
+
+		noisy_values_sum = torch.sum(noisy_values, dim=1)
+
+		print(noisy_values_sum)
+		print(noisy_values_sum.size())
+
+		noisy_values_normalized = noisy_values/noisy_values_sum.unsqueeze(1)
+
+		print(noisy_values_normalized)
+		print(noisy_values_normalized.size())
+
+		print()
+
+		print(dir(noise_dist))
+		print(noise_dist.mean)
+		print(noise_dist.stddev)
+
+
 
 	
 

@@ -73,31 +73,25 @@ def filter_correct(attack_corpus):
 	return new_attack_corpus
 
 
-def get_attack_examples(attack_corpus, attack_type, number):
+def get_attack_examples(attack_corpus, attack_strength, number):
 
-	if number > len(attack_corpus):
-		number = len(attack_corpus)
+	start_idx = attack_strength*number
+	end_idx = start_idx + number
 
-	if attack_type == "hard":
+	if start_idx > len(attack_corpus):
+		return []
 
-		return dict(attack_corpus[-number:])
+	if end_idx > len(attack_corpus):
+		end_idx = len(attack_corpus)
 
-	elif attack_type == "easy":
-
-		return dict(attack_corpus[:number])
-
-	elif attack_type == "uniform":
-
-		step = len(attack_corpus)/number
-
-		return dict([attack_corpus[int(i*step)] for i in range(number)])
+	return dict(attack_corpus[start_idx:end_idx])
 
 
 def generate_attack_corpus(*args, **kwargs):
 
 	number_of_examples = kwargs.pop("number_of_examples")
 
-	attack_type = kwargs.pop("attack_type", "uniform")
+	attack_strength = kwargs.pop("attack_strength")
 
 	corpus_text_file = kwargs.pop("corpus_text_file")
 	corpus_indexes = kwargs.pop("corpus_indexes")
@@ -124,9 +118,9 @@ def generate_attack_corpus(*args, **kwargs):
 		attack_corpus[num]["p_pred"] = details["probs"][pred_label]
 
 	#sort by prediction score (idea higher score = harder to attack?)
-	attack_corpus = sorted(attack_corpus.items(), key=lambda x:x[1]["p_pred"])
+	attack_corpus = sorted(attack_corpus.items(), key=lambda x:x[1]["p_pred"], reverse=True)
 	
-	attack_corpus = get_attack_examples(attack_corpus, attack_type, number_of_examples)
+	attack_corpus = get_attack_examples(attack_corpus, attack_strength, number_of_examples)
 
 	return attack_corpus
 

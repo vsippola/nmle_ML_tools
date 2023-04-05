@@ -11,7 +11,7 @@ import os
 import pickle
 import numpy as np
 
-class sts_parsed2corpus_const:
+class snli_parsed2corpus_const:
 	
 	CORUPUS_OUTPUT = {'snli_1.0_dev.tsv':'dev.pkl', 'snli_1.0_test.tsv':'test.pkl', 'snli_1.0_train.tsv':'train.pkl'}
 	CORPUS_FILES = ['snli_1.0_dev.tsv', 'snli_1.0_test.tsv', 'snli_1.0_train.tsv']
@@ -24,7 +24,7 @@ def get_corpus_vocab(input_folder):
 
 	corpus_vocab = {}
 
-	for file in sts_parsed2corpus_const.CORPUS_FILES:
+	for file in snli_parsed2corpus_const.CORPUS_FILES:
 
 		file_path = os.path.join(input_folder, file)
 

@@ -47,6 +47,8 @@ class FFNBuilder():
 
 	def build(self):
 
+		from models.builders.module_factory import ModuleFactory
+
 		if not self.configured:
 			print()
 			print(f'Builder not configured')

@@ -9,6 +9,14 @@
 
 python3.10 training.py -working_folder "../experiments/snli_bilstm_4" -config_folder "../configs/snli_bilstm/" -RNG_SEED 1234
 
+python3.10 training.py -working_folder "../experiments/snli/ens_train_m" -config_folder "../configs/snli_ensemble_train_m/" -RNG_SEED 1234
+python3.10 training.py -working_folder "../experiments/snli/ens_train_m_noise" -config_folder "../configs/snli_ensemble_train_m_noise/" -RNG_SEED 1234
+python3.10 training.py -working_folder "../experiments/snli/ens_train_m_model" -config_folder "../configs/snli_ensemble_train_m_model/" -RNG_SEED 1234
+
+python3.10 training.py -working_folder "../experiments/snli/ens_train_mlp" -config_folder "../configs/snli_ensemble_train_mlp/" -RNG_SEED 1234
+
+python3.10 training.py -working_folder "../experiments/snli/ens_train_m2" -config_folder "../configs/snli_ensemble_train_m2/" -RNG_SEED 1234
+
 """
 
 import argparse
@@ -86,6 +94,9 @@ def main():
 	
 	#run training
 	model_trainer(model)
+
+	for name, param in model.named_parameters():
+	    print (name, param.data)
 
 
 if __name__ == '__main__':

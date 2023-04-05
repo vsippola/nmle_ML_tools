@@ -8,13 +8,28 @@
 
 """
 
-python3.10 basic_inference.py -output_file "../experiments/snli_ensemble/snli_testing.txt" -inference_config_file "../configs/snli_basic_ensemble/testing.json" -model_config_file "../configs/snli_basic_ensemble/model.json" -RNG_SEED 1234
+python3.10 basic_inference.py -output_file "../experiments/snli/ens_train_m/snli_testing.txt" -inference_config_file "../configs/snli_ensemble_train_m/testing.json" -model_config_file "../configs/snli_ensemble_train_m/model_attack.json" -RNG_SEED 1234
+
+
+python3.10 basic_inference.py -output_file "../experiments/snli_ensemble_trans_noise/snli_testing.txt" -inference_config_file "../configs/snli_ensemble_trans_noise/testing.json" -model_config_file "../configs/snli_ensemble_trans_noise/model.json" -RNG_SEED 1234
+
+
+python3.10 basic_inference.py -output_file "../experiments/snli_ensemble_trans_vote/snli_testing.txt" -inference_config_file "../configs/snli_ensemble_trans_vote/testing.json" -model_config_file "../configs/snli_ensemble_trans_vote/model.json" -RNG_SEED 1234
+
+python3.10 basic_inference.py -output_file "../experiments/snli_ensemble_vote/snli_testing.txt" -inference_config_file "../configs/snli_ensemble_vote/testing.json" -model_config_file "../configs/snli_ensemble_vote/model.json" -RNG_SEED 1234
+
+python3.10 basic_inference.py -output_file "../experiments/snli_ensemble_trans/snli_testing.txt" -inference_config_file "../configs/snli_ensemble_trans/testing.json" -model_config_file "../configs/snli_ensemble_trans/model.json" -RNG_SEED 1234
+
+python3.10 basic_inference.py -output_file "../experiments/snli_ensemble/snli_testing.txt" -inference_config_file "../configs/snli_ensemble/testing.json" -model_config_file "../configs/snli_ensemble/model.json" -RNG_SEED 1234
+
 
 python3.10 basic_inference.py -output_file "../experiments/snli_bilstm/snli_testing.txt" -inference_config_file "../configs/snli_bilstm/testing.json" -model_config_file "../configs/snli_bilstm/model_testing.json" -RNG_SEED 1234
 
-python3.10 basic_inference.py -output_file "../experiments/snli_elmo/snli_testing.txt" -inference_config_file "../configs/snli_elmo/testing.json" -model_config_file "../configs/snli_elmo/model.json" -RNG_SEED 1234
-
 python3.10 basic_inference.py -output_file "../experiments/snli_roberta/snli_testing.txt" -inference_config_file "../configs/snli_roberta/testing.json" -model_config_file "../configs/snli_roberta/model.json" -RNG_SEED 1234
+
+python3.10 basic_inference.py -output_file "../experiments/snli_deberta/snli_testing.txt" -inference_config_file "../configs/snli_deberta/testing.json" -model_config_file "../configs/snli_deberta/model.json" -RNG_SEED 1234
+
+python3.10 basic_inference.py -output_file "../experiments/snli_bart/snli_testing.txt" -inference_config_file "../configs/snli_bart/testing.json" -model_config_file "../configs/snli_bart/model.json" -RNG_SEED 1234
 
 """
 
@@ -54,7 +69,7 @@ def main():
 	parser.add_argument("-output_file", help="folder to store inference results", required=True)
 	parser.add_argument("-inference_config_file", help="config for the ingerece evaluator", required=True)
 	parser.add_argument("-model_config_file", help="config for the ingerece evaluator", required=True)
-	parser.add_argument("-RNG_SEED", help="RNG seed valui", default=None, required=False, type=int)
+	parser.add_argument("-RNG_SEED", help="RNG seed value", default=None, required=False, type=int)
 	args = parser.parse_args()
 
 

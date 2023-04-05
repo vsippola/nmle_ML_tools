@@ -1,0 +1,44 @@
+{
+	"module_type":"ensemble_values",
+	"ensemble_batch_key":"ensemble_batch",
+	"logits_keys":
+	{
+		"roberta":"output_logits",
+		"deberta":"output_logits",
+		"bart":"output_logits"
+	},
+	"output_key":"ensemble_values",		
+	"ensemble_model_configs":
+	{					
+		"roberta":
+		{
+			"module_type":"hf_model",
+			"class":"roberta_adapter",
+			"address":"roberta-base",
+			"adapter":"AdapterHub/roberta-base-pf-snli",
+			"batch_key":"bert_batch",
+			"output_key":"output_logits",
+			"output_dimension":3
+		},
+		"deberta":
+		{
+			"module_type":"hf_model",
+			"class":"auto_seq_class",
+			"address":"cross-encoder/nli-deberta-v3-xsmall",
+			"logits_transform":[1,2,0],
+			"batch_key":"bert_batch",
+			"output_key":"output_logits",
+			"output_dimension":3
+		},
+		"bart":{
+			"module_type":"hf_model",
+			"class":"bart_seq_class",
+			"address":"facebook/bart-large-mnli",
+			"logits_transform":[2,1,0],
+			"batch_key":"bert_batch",
+			"output_key":"output_logits",
+			"output_dimension":3
+		}
+	}
+}
+

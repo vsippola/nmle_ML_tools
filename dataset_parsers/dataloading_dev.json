@@ -1,0 +1,93 @@
+{
+	"dataset_config":
+	{
+		"dataset_type":"ensemble",
+		"corpus_file":"../../parsed_data/ens/ens_dev.tsv",
+		"example_number_index":0,
+
+		"label_transform_params":
+		{
+			"label_transform_type":"dict",
+			"label_index":1,
+			"label_dict":
+			{
+				"entailment":0,
+				"neutral":1,
+				"contradiction":2
+			}
+		},
+		"collate_fn_params":
+		{
+			"collate_fn_type":"ensemble",
+			"ensemble_batch_key":"ensemble_batch",
+			"example_numbers_key":"example_numbers", 
+			"labels_key":"true_labels"
+		},
+		
+
+		"dataset_configs":
+		{			
+			"roberta":
+			{			
+				"dataset_type": "sentence_list",		
+
+				"sentence_transform_params":
+				{
+					"sentence_transform_type":"bert",			
+					"sentence_index":[2, 3]
+				},
+
+				"collate_fn_params":
+				{
+					"collate_fn_type":"roberta_single_sentence",
+					"tokenizer_type":"roberta_fast",
+					"tokenizer_source":"roberta-base",					
+					"bert_batch_key":"bert_batch"
+				}
+			},			
+			"deberta":
+			{			
+				"dataset_type": "sentence_list",		
+
+				"sentence_transform_params":
+				{
+					"sentence_transform_type":"bert",			
+					"sentence_index":[2, 3]
+				},
+
+				"collate_fn_params":
+				{
+					"collate_fn_type":"roberta_single_sentence",
+					"tokenizer_type":"auto",
+					"tokenizer_source":"cross-encoder/nli-deberta-v3-xsmall",				
+					"bert_batch_key":"bert_batch"
+				}
+			},
+			"bart":
+			{			
+				"dataset_type": "sentence_list",		
+
+				"sentence_transform_params":
+				{
+					"sentence_transform_type":"bert",			
+					"sentence_index":[2, 3]
+				},
+
+				"collate_fn_params":
+				{
+					"collate_fn_type":"roberta_single_sentence",
+					"tokenizer_type":"bart",
+					"tokenizer_source":"facebook/bart-large-mnli",				
+					"bert_batch_key":"bert_batch"
+				}
+			}
+		}
+	},
+	"dataloader_params":
+	{
+		"batch_size":32,
+		"shuffle":false,
+		"num_workers":7
+	}
+}
+	

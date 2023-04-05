@@ -5,12 +5,20 @@
 #       Created on: 2021-06-12      #
 # --------------------------------- #
 
+"""
+
+python3.10 attack_code/do_pwws_attack.py -attack_config_file "../configs/attacks/bilstm/testing.json"
+
+"""
+
+import argparse
 import json
 import os
 import pathlib
+import sys
 
 from attack_code.generate_attack_corpus import generate_attack_corpus
-from attack_code.PWWS_attack import PWWSAttacker
+from attack_code.PWWS_attacker import PWWSAttacker
 
 from models.builders.module_factory import ModuleFactory
 
@@ -23,76 +31,19 @@ def build_model(model_config):
 	return model
 
 
-def main():
 
-	attack_corpus_params = {
-		"number_of_examples":1000,
+def do_pwws(attack_config):
 
-		"attack_type":"hard",
+	pwws_attack_config = attack_config["pwws_config"]
+	attack_corpus_params = attack_config["attack_corpus_params"]
 
-		"corpus_text_file":"../parsed_data/snli_1.0/snli_1.0_test.tsv",
-		
-		"corpus_indexes":
-		{
-			"example_num":0,
-			"true_label":1,
-			"sentences":[2,3]
-		},
-
-		"label2int":
-		{
-			"entailment":0,
-			"neutral":1,
-			"contradiction":2
-		},
-
-		"prediction_details_file":"../experiments/snli_roberta/snli_testing_details.txt",
-
-		"prediction_details_indexes":
-		{
-			"example_num":0,
-			"pred_label":1,
-			"probs":2,
-		}		
-
-	}
-
-	attack_config = {
-		"prob_key":"class_percentages",
-		"int2label":
-		{
-			0:"entailment",
-			1:"neutral",
-			2:"contradiction"
-		},
-		"model_config_file":"../configs/snli_bilstm/model_attack.json",
-		"inference_config_file":"../configs/snli_bilstm/testing_attack.json",
-		"output_folder":"../experiments/snli_bilstm/easy_attack/"
-	}
-
-	attack_config = {
-		"prob_key":"class_percentages",
-		"int2label":
-		{
-			0:"entailment",
-			1:"neutral",
-			2:"contradiction"
-		},
-		"model_config_file":"../configs/snli_roberta/model.json",
-		"inference_config_file":"../configs/snli_roberta/testing.json",
-		"output_folder":"../experiments/snli_roberta/hard_attack/"
-	}
-
-	
-
-	
-
-
-	with open(attack_config["inference_config_file"], 'r') as f:
+	with open(pwws_attack_config["inference_config_file"], 'r') as f:
 		inference_config = json.load(f)
 
-	with open(attack_config["model_config_file"], 'r') as f:
+	with open(pwws_attack_config["model_config_file"], 'r') as f:
 		model_config = json.load(f)
+
+	output_folder = pwws_attack_config["output_folder"]
 
 	dataset_config = inference_config["dataset_config"]
 
@@ -104,6 +55,11 @@ def main():
 
 	attack_corpus = generate_attack_corpus(**attack_corpus_params)
 
+	if len(attack_corpus) == 0:
+		print()
+		print("No valid example found to attack")
+		sys.exit()
+
 	model = build_model(model_config)
 
 	attacker = PWWSAttacker(
@@ -111,11 +67,9 @@ def main():
 		model=model, 
 		dataset_config=dataset_config, 
 		dataloader_params=dataloader_params, 
-		**attack_config)
+		**pwws_attack_config)
 
 	general_report, safe_report, attack_report = attacker.attack()
-
-	output_folder = attack_config["output_folder"]
 
 	pathlib.Path(output_folder).mkdir(parents=True, exist_ok=True)
 
@@ -126,7 +80,20 @@ def main():
 		with open(output_file, "w") as f:
 			f.write(report)
 
+	output_file = os.path.join(output_folder, "config.json")
+
+	with open(output_file, 'w') as f:
+		json.dump(attack_config, f)
 	
 
 if __name__ == '__main__':
-	main()
+
+	#parse command line
+	parser = argparse.ArgumentParser()
+	parser.add_argument("-attack_config_file", help="attack confiig file", required=True)
+	args = parser.parse_args()
+
+	with open(args.attack_config_file, 'r') as f:
+		attack_config = json.load(f)
+
+	do_pwws(attack_config)
